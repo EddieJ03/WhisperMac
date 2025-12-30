@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail # fail this script if any command run fails
 
 git submodule update --init --recursive
 
