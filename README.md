@@ -1,5 +1,7 @@
 # WhisperMac
 
+Get real-time transcriptions for anything playing audio on a Mac.
+
 ## Setting Up
 
 Please do the following sections in order shown.
