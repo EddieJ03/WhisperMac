@@ -15,6 +15,8 @@ Please do the following sections in order shown.
 1. Click the `+` icon in the bottom left and choose the option with 'Multi-Ouput Device'
 2. Configure the Multi-Output Device to look this:
 ![Audio MIDI Multi-Output Device](./images/audiomidi.png)
+    - If there are more devices, check it and enable drift correction
+
 3. Go to `Blackhole 2ch` in Audio MIDI, and make sure Output format is 48,000 Hz and Primary value is 1.0:
 ![Audio MIDI Blackhole](./images/audiomidiblackhole.png)
 
