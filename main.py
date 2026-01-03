@@ -36,10 +36,25 @@ def read_whisper(overlay):
     # give the overlay the reference so it can clean it up
     overlay.whisper_proc = proc
 
+    clear_timer = None
+    CLEAR_DELAY = 2.0  # seconds of silence before clearing overlay
+
+    def clear_overlay():
+        overlay.set_text("")
+
     for line in proc.stdout:
         line = line.strip()
         if line.startswith("U:"):
-            overlay.set_text(line[2:])
+            if clear_timer is not None:
+                clear_timer.cancel()
+
+            text = line[2:]
+            overlay.set_text(text)
+
+            if text:  # Only schedule clear if there was actual text
+                clear_timer = threading.Timer(CLEAR_DELAY, clear_overlay)
+                clear_timer.daemon = True
+                clear_timer.start()
 
 
 def main():
