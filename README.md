@@ -8,21 +8,20 @@ Please do the following sections in order shown.
 
 ### Install Blackhole 2ch For Mac: https://existential.audio/blackhole/
 
-- This is needed to send audio to the Python script for transcription
+- This is needed to send audio to whisper for transcription
 
 ### Multi-Output Device in Audio MIDI
 
 1. Click the `+` icon in the bottom left and choose the option with 'Multi-Ouput Device'
 2. Configure the Multi-Output Device to look this:
-![Audio MIDI Multi-Output Device](./images/audiomidi.png)
+<img src="./images/audiomidi.png" width="80%" alt="Audio MIDI Multi-Output Device">
     - If there are more devices, check it and enable drift correction
 
 3. Go to `Blackhole 2ch` in Audio MIDI, and make sure Output format is 48,000 Hz and Primary value is 1.0:
-![Audio MIDI Blackhole](./images/audiomidiblackhole.png)
+<img src="./images/audiomidiblackhole.png" width="89%" alt="Audio MIDI Blackhole">
 
-> [!IMPORTANT] 
-> Now every time you want audio to go to both speakers and Blackhole, just change the Sound output:
-![Change sound output](./images/audiooutput.png)
+4. Now every time you want audio to go to both speakers and Blackhole, just change the Sound output to Multi-Output Device:
+<img src="./images/audiooutput.png" width="60%" alt="Change sound output">
 
 > [!WARNING] 
 > In Multi-Ouput Device output, the volume will NOT be able to be changed. You must change the volume of the speaker first before switching to Multi-Ouput Device.
