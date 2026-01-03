@@ -81,7 +81,6 @@ class SubtitleOverlay(NSObject):
         self.label = NSTextField.alloc().initWithFrame_(
             NSMakeRect(15, 15, label_width, 40)
         )
-        self.label.setStringValue_("Listening...")
         self.label.setTextColor_(NSColor.whiteColor())
         self.label.setFont_(NSFont.systemFontOfSize_weight_(24, 0.5))
         self.label.setBezeled_(False)
