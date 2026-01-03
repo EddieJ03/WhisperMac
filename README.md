@@ -20,10 +20,12 @@ Please do the following sections in order shown.
 3. Go to `Blackhole 2ch` in Audio MIDI, and make sure Output format is 48,000 Hz and Primary value is 1.0:
 ![Audio MIDI Blackhole](./images/audiomidiblackhole.png)
 
-Now every time you want audio to go to both speakers and Blackhole, just change the Sound output:
+> [!IMPORTANT] 
+> Now every time you want audio to go to both speakers and Blackhole, just change the Sound output:
 ![Change sound output](./images/audiooutput.png)
 
-NOTE: in Multi-Ouput Device output, the volume will NOT be able to be changed. You must change the volume of the speaker first before switching to Multi-Ouput Device.
+> [!WARNING] 
+> In Multi-Ouput Device output, the volume will NOT be able to be changed. You must change the volume of the speaker first before switching to Multi-Ouput Device.
 
 ### Setting Up Xcode
 
