@@ -55,7 +55,7 @@ def read_whisper(overlay, language_to_translate=None):
         if line.startswith("<text>:"):
             text = line[len("<text>:") :]
             overlay.set_text(text)
-        elif line.startswith("<Ready to transcribe") or line.startswith("<error>:"):
+        elif line.startswith("<Ready") or line.startswith("<error>:"):
             overlay.set_text(line)
 
 
