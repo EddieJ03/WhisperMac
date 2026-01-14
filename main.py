@@ -5,23 +5,22 @@ from AppKit import NSApplication
 from subtitles import SubtitleOverlay
 import argparse
 
+        
+prev_line = ""
+curr_text = ""
 
 def read_whisper(overlay, language_to_translate=None):
     """Read whisper-stream output and update overlay"""
     args = [
         "./whisper.cpp/build/bin/whisper-stream",
         "-m",
-        (
-            "./whisper.cpp/models/ggml-large-v3-q8_0.bin"
-            if language_to_translate
-            else "./whisper.cpp/models/ggml-large-v3-turbo.bin"
-        ),
+        "./whisper.cpp/models/ggml-large-v3-q8_0.bin",
         "-t",
         "6",
         "--step",
         "1000",
         "--length",
-        "5000",
+        "4000",
         "--keep",
         "500",
         "-c",
@@ -30,6 +29,7 @@ def read_whisper(overlay, language_to_translate=None):
         "-svm",
         "./whisper.cpp/models/ggml-silero-v6.2.0.bin",
         "--denoise",
+        "-kc",
     ]
 
     if language_to_translate:
@@ -49,14 +49,18 @@ def read_whisper(overlay, language_to_translate=None):
 
     # give the overlay the reference so it can clean it up
     overlay.whisper_proc = proc
+    
+    global prev_line
 
     for line in proc.stdout:
         line = line.strip()
         if line.startswith("<text>:"):
-            text = line[len("<text>:") :]
-            overlay.set_text(text)
+            curr_text = line[len("<text>:") :]
+            overlay.set_text_with_previous(prev_line, curr_text)
         elif line.startswith("<Ready") or line.startswith("<error>:"):
             overlay.set_text(line)
+        elif line.startswith("<next>:"):
+            prev_line = curr_text
 
 
 def main(language_to_translate=None):

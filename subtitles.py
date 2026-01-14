@@ -78,11 +78,28 @@ class SubtitleOverlay(NSObject):
         # Create subtitle label
         content_view = self.panel.contentView()
         label_width = self.FIXED_WIDTH - self.H_PADDING
+
+        self.prev_label = NSTextField.alloc().initWithFrame_(
+            NSMakeRect(15, 50, label_width, 30)
+        )
+        self.prev_label.setTextColor_(
+            NSColor.colorWithCalibratedRed_green_blue_alpha_(0.8, 0.8, 0.8, 0.8)
+        )
+        self.prev_label.setFont_(NSFont.systemFontOfSize_weight_(19, 0.4))
+        self.prev_label.setBezeled_(False)
+        self.prev_label.setDrawsBackground_(False)
+        self.prev_label.setEditable_(False)
+        self.prev_label.setSelectable_(False)
+        self.prev_label.setAlignment_(NSTextAlignmentCenter)
+        self.prev_label.setLineBreakMode_(NSLineBreakByWordWrapping)
+        content_view.addSubview_(self.prev_label)
+
+        # Create current line label (larger, bright)
         self.label = NSTextField.alloc().initWithFrame_(
             NSMakeRect(15, 15, label_width, 40)
         )
         self.label.setTextColor_(NSColor.whiteColor())
-        self.label.setFont_(NSFont.systemFontOfSize_weight_(24, 0.5))
+        self.label.setFont_(NSFont.systemFontOfSize_weight_(26, 0.5))
         self.label.setBezeled_(False)
         self.label.setDrawsBackground_(False)
         self.label.setEditable_(False)
@@ -115,34 +132,50 @@ class SubtitleOverlay(NSObject):
                 self.whisper_proc.kill()
         NSApp.terminate_(None)
 
-    def setText_(self, text):
-        """Called on main thread - update UI directly"""
-        self.label.setStringValue_(text)
-        self._resize_for_text(text)
+    def setText_(self, texts):
+        """Called on main thread - update UI with previous and current text"""
+        prev_text, curr_text = texts
+        self.prev_label.setStringValue_(prev_text)
+        self.label.setStringValue_(curr_text)
+        self._resize_for_text(prev_text, curr_text)
 
-    def set_text(self, text):
-        """Thread-safe: schedules UI update on main thread (no lock needed)"""
+    def set_text_with_previous(self, prev_text, curr_text):
+        """Thread-safe: schedules UI update on main thread with both texts"""
         self.performSelectorOnMainThread_withObject_waitUntilDone_(
             objc.selector(self.setText_, signature=b"v@:@"),
-            text,
+            (prev_text, curr_text),
             False,  # Don't block the calling thread
         )
 
-    def _resize_for_text(self, text):
+    def set_text(self, text):
+        """Thread-safe: schedules UI update on main thread (legacy, for backwards compatibility)"""
+        self.set_text_with_previous("", text)
+
+    def _resize_for_text(self, prev_text, curr_text):
         """Resize window height to fit wrapped text content"""
-        # Calculate required height for the text at fixed width
-        font = self.label.font()
-        attrs = {NSFontAttributeName: font}
         label_width = self.FIXED_WIDTH - self.H_PADDING
-
-        # Calculate bounding rect for text with constrained width
-        ns_string = NSString.stringWithString_(text)
-        text_size = ns_string.sizeWithAttributes_(attrs)
-
-        # Estimate number of lines needed
-        lines_needed = max(1, int(text_size.width / label_width) + 1)
-        line_height = text_size.height
-        required_text_height = lines_needed * line_height
+        
+        # Calculate height for current text (larger font)
+        curr_font = self.label.font()
+        curr_attrs = {NSFontAttributeName: curr_font}
+        ns_curr = NSString.stringWithString_(curr_text)
+        curr_size = ns_curr.sizeWithAttributes_(curr_attrs)
+        curr_lines = max(1, int(curr_size.width / label_width) + 1)
+        curr_height = curr_lines * curr_size.height
+        
+        # Calculate height for previous text (smaller font)
+        prev_height = 0
+        spacing = 0
+        if prev_text:
+            prev_font = self.prev_label.font()
+            prev_attrs = {NSFontAttributeName: prev_font}
+            ns_prev = NSString.stringWithString_(prev_text)
+            prev_size = ns_prev.sizeWithAttributes_(prev_attrs)
+            prev_lines = max(1, int(prev_size.width / label_width) + 1)
+            prev_height = prev_lines * prev_size.height
+            spacing = 10  # Add spacing between lines
+        
+        required_text_height = prev_height + spacing + curr_height
 
         # Add padding for margins
         required_height = required_text_height + self.V_PADDING
@@ -165,9 +198,21 @@ class SubtitleOverlay(NSObject):
             )
             self.panel.setFrame_display_animate_(new_frame, True, True)
 
-            # Update label height (keep at bottom with padding)
-            label_height = new_height - self.V_PADDING
-            self.label.setFrame_(NSMakeRect(15, 15, label_width, label_height))
+            # Update label positions (previous at top, current below)
+            top_padding = 15
+            if prev_text:
+                # Previous label at top
+                self.prev_label.setFrame_(
+                    NSMakeRect(15, new_height - 15 - prev_height, label_width, prev_height)
+                )
+                # Current label below previous with spacing
+                curr_label_y = new_height - 15 - prev_height - spacing - curr_height
+                self.label.setFrame_(NSMakeRect(15, curr_label_y, label_width, curr_height))
+            else:
+                # No previous text, center current label
+                self.prev_label.setFrame_(NSMakeRect(15, 15, label_width, 0))
+                curr_label_y = new_height - 15 - curr_height
+                self.label.setFrame_(NSMakeRect(15, curr_label_y, label_width, curr_height))
 
             # Update close button position (top-right corner)
             self.close_button.setFrame_(
