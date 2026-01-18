@@ -51,15 +51,30 @@ def read_whisper(overlay, language_to_translate=None):
     overlay.whisper_proc = proc
     
     global prev_line
+    global curr_text
+    
+    next_ctr = 0
 
     for line in proc.stdout:
         line = line.strip()
         if line.startswith("<text>:"):
+            next_ctr = 0
             curr_text = line[len("<text>:") :]
             overlay.set_text_with_previous(prev_line, curr_text)
         elif line.startswith("<Ready") or line.startswith("<error>:"):
             overlay.set_text(line)
+            next_ctr = 0
         elif line.startswith("<next>:"):
+            next_ctr += 1
+            if next_ctr == 3:
+                curr_text = ''
+                overlay.set_text_with_previous(prev_line, curr_text)
+                continue
+            if next_ctr == 6:
+                curr_text = ''
+                prev_line = ''
+                overlay.set_text_with_previous(prev_line, curr_text)
+                continue
             prev_line = curr_text
 
 
