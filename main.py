@@ -66,16 +66,14 @@ def read_whisper(overlay, language_to_translate=None):
             next_ctr = 0
         elif line.startswith("<next>:"):
             next_ctr += 1
-            if next_ctr == 3:
+            if next_ctr == 1:
+                prev_line = curr_text
                 curr_text = ''
+            elif next_ctr == 3: # more silence, update subtitles shown
                 overlay.set_text_with_previous(prev_line, curr_text)
-                continue
-            if next_ctr == 6:
-                curr_text = ''
+            elif next_ctr == 5: # even more silence, clear everything
                 prev_line = ''
                 overlay.set_text_with_previous(prev_line, curr_text)
-                continue
-            prev_line = curr_text
 
 
 def main(language_to_translate=None):
