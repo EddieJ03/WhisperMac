@@ -4,10 +4,38 @@ import subprocess
 from AppKit import NSApplication
 from subtitles import SubtitleOverlay
 import argparse
+import re
 
-        
 prev_line = ""
 curr_text = ""
+
+
+def add_newlines_after_punctuation(text, min_length=20):
+    """Insert newline after punctuation only if preceding text exceeds min_length"""
+    result = []
+    current_line = []
+
+    parts = re.split(r"([.!?])", text)
+    for _, part in enumerate(parts):
+        if part in ".!?":
+            current_line.append(part)
+            current_text = "".join(current_line).strip()
+
+            if len(current_text) >= min_length:
+                result.append(current_text)
+                current_line = []
+            else:
+                current_line.append(" ")
+        else:
+            current_line.append(part)
+
+    if current_line:
+        remaining = "".join(current_line).strip()
+        if remaining:
+            result.append(remaining)
+
+    return "\n".join(result)
+
 
 def read_whisper(overlay, language_to_translate=None):
     """Read whisper-stream output and update overlay"""
@@ -18,7 +46,7 @@ def read_whisper(overlay, language_to_translate=None):
         "-t",
         "6",
         "--step",
-        "1000",
+        "800",
         "--length",
         "4000",
         "--keep",
@@ -49,18 +77,20 @@ def read_whisper(overlay, language_to_translate=None):
 
     # give the overlay the reference so it can clean it up
     overlay.whisper_proc = proc
-    
+
     global prev_line
     global curr_text
-    
+
     next_ctr = 0
 
     for line in proc.stdout:
         line = line.strip()
         if line.startswith("<text>:"):
-            next_ctr = 0
             curr_text = line[len("<text>:") :]
-            overlay.set_text_with_previous(prev_line, curr_text)
+            overlay.set_text_with_previous(
+                prev_line, add_newlines_after_punctuation(curr_text)
+            )
+            next_ctr = 0
         elif line.startswith("<Ready") or line.startswith("<error>:"):
             overlay.set_text(line)
             next_ctr = 0
@@ -68,11 +98,11 @@ def read_whisper(overlay, language_to_translate=None):
             next_ctr += 1
             if next_ctr == 1:
                 prev_line = curr_text
-                curr_text = ''
-            elif next_ctr == 3: # more silence, update subtitles shown
+                curr_text = ""
+            elif next_ctr == 3:  # more silence, update subtitles shown
                 overlay.set_text_with_previous(prev_line, curr_text)
-            elif next_ctr == 5: # even more silence, clear everything
-                prev_line = ''
+            elif next_ctr == 5:  # even more silence, clear everything
+                prev_line = ""
                 overlay.set_text_with_previous(prev_line, curr_text)
 
 
