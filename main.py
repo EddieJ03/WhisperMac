@@ -10,18 +10,18 @@ prev_line = ""
 curr_text = ""
 
 
-def add_newlines_after_punctuation(text, min_length=20):
+def add_newlines_after_punctuation(text, min_length=30):
     """Insert newline after punctuation only if preceding text exceeds min_length"""
     result = []
     current_line = []
 
     parts = re.split(r"([.!?])", text)
-    for _, part in enumerate(parts):
+    for part in parts:
         if part in ".!?":
             current_line.append(part)
             current_text = "".join(current_line).strip()
 
-            if len(current_text) >= min_length:
+            if len(current_text) > min_length:
                 result.append(current_text)
                 current_line = []
             else:
@@ -32,7 +32,10 @@ def add_newlines_after_punctuation(text, min_length=20):
     if current_line:
         remaining = "".join(current_line).strip()
         if remaining:
-            result.append(remaining)
+            if len(result) > 0 and len(result[-1] + " " + remaining) <= min_length:
+                result[-1] = result[-1] + " " + remaining
+            else:
+                result.append(remaining)
 
     return "\n".join(result)
 

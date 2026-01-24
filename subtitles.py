@@ -34,7 +34,7 @@ import Quartz
 
 class SubtitleOverlay(NSObject):
     # Fixed width, dynamic height for text wrapping
-    FIXED_WIDTH = 900
+    FIXED_WIDTH = 800
     MIN_HEIGHT = 70
     MAX_HEIGHT = 200
     H_PADDING = 60  # 15px left + 25px button + 20px spacing
