@@ -28,6 +28,7 @@ from AppKit import (
     NSTextAlignmentCenter,
     NSLineBreakByWordWrapping,
     NSBezelStyleCircular,
+    NSLineBreakByTruncatingHead,
 )
 import Quartz
 
@@ -91,7 +92,7 @@ class SubtitleOverlay(NSObject):
         self.prev_label.setEditable_(False)
         self.prev_label.setSelectable_(False)
         self.prev_label.setAlignment_(NSTextAlignmentCenter)
-        self.prev_label.setLineBreakMode_(NSLineBreakByWordWrapping)
+        self.prev_label.setLineBreakMode_(NSLineBreakByTruncatingHead)
         content_view.addSubview_(self.prev_label)
 
         # Create current line label (larger, bright)
@@ -160,20 +161,15 @@ class SubtitleOverlay(NSObject):
         curr_attrs = {NSFontAttributeName: curr_font}
         ns_curr = NSString.stringWithString_(curr_text)
         curr_size = ns_curr.sizeWithAttributes_(curr_attrs)
-        curr_lines = max(1, int(curr_size.width / label_width) + 1)
+        curr_lines = max(1, int((curr_size.width + label_width - 1) / label_width))
         curr_height = curr_lines * curr_size.height
 
         # Calculate height for previous text (smaller font)
         prev_height = 0
         spacing = 0
         if prev_text:
-            prev_font = self.prev_label.font()
-            prev_attrs = {NSFontAttributeName: prev_font}
-            ns_prev = NSString.stringWithString_(prev_text)
-            prev_size = ns_prev.sizeWithAttributes_(prev_attrs)
-            prev_lines = max(1, int(prev_size.width / label_width) + 1)
-            prev_height = prev_lines * prev_size.height
-            spacing = 10  # Add spacing between lines
+            prev_height = self.prev_label.font().pointSize() * 1.2  # Approximate line height
+            spacing = 10
 
         required_text_height = prev_height + spacing + curr_height
 
@@ -199,7 +195,6 @@ class SubtitleOverlay(NSObject):
             self.panel.setFrame_display_animate_(new_frame, True, False)
 
             # Update label positions (previous at top, current below)
-            top_padding = 15
             if prev_text:
                 # Previous label at top
                 self.prev_label.setFrame_(
