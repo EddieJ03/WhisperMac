@@ -31,7 +31,7 @@ def add_newlines_after_punctuation(text, min_length=30):
 
     if current_line:
         remaining = "".join(current_line).strip()
-        if remaining:
+        if remaining and any(char.isalnum() for char in remaining):
             if len(result) > 0 and len(result[-1] + " " + remaining) <= min_length:
                 result[-1] = result[-1] + " " + remaining
             else:
