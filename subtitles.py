@@ -29,13 +29,14 @@ from AppKit import (
     NSLineBreakByWordWrapping,
     NSBezelStyleCircular,
     NSLineBreakByTruncatingHead,
+    NSStringDrawingUsesLineFragmentOrigin,
 )
 import Quartz
 
 
 class SubtitleOverlay(NSObject):
     # Fixed width, dynamic height for text wrapping
-    FIXED_WIDTH = 800
+    FIXED_WIDTH = 750
     MIN_HEIGHT = 70
     MAX_HEIGHT = 200
     H_PADDING = 60  # 15px left + 25px button + 20px spacing
@@ -160,9 +161,12 @@ class SubtitleOverlay(NSObject):
         curr_font = self.label.font()
         curr_attrs = {NSFontAttributeName: curr_font}
         ns_curr = NSString.stringWithString_(curr_text)
-        curr_size = ns_curr.sizeWithAttributes_(curr_attrs)
-        curr_lines = max(1, int((curr_size.width + label_width - 1) / label_width))
-        curr_height = curr_lines * curr_size.height
+        bounding_rect = ns_curr.boundingRectWithSize_options_attributes_(
+            (label_width, 10000), # Max width = label_width, max height = large number
+            NSStringDrawingUsesLineFragmentOrigin,
+            curr_attrs
+        )
+        curr_height = bounding_rect.size.height
 
         # Calculate height for previous text (smaller font)
         prev_height = 0
