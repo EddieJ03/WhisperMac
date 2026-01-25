@@ -1,6 +1,6 @@
 # WhisperMac
 
-Get real-time transcriptions for anything playing audio on a Mac.
+Get real-time transcriptions for anything playing audio on a Mac. Targeted for English output.
 
 ## Setting Up
 

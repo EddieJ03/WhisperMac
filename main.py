@@ -1,43 +1,16 @@
-from helpers import get_blackhole_device_index, request_screen_recording_permission
+from helpers import (
+    text_preprocessing,
+    get_blackhole_device_index,
+    request_screen_recording_permission,
+)
 import threading
 import subprocess
 from AppKit import NSApplication
 from subtitles import SubtitleOverlay
 import argparse
-import re
 
 prev_line = ""
 curr_text = ""
-
-
-def add_newlines_after_punctuation(text, min_length=30):
-    """Insert newline after punctuation only if preceding text exceeds min_length"""
-    result = []
-    current_line = []
-
-    parts = re.split(r"([.!?])", text)
-    for part in parts:
-        if part in ".!?":
-            current_line.append(part)
-            current_text = "".join(current_line).strip()
-
-            if len(current_text) > min_length:
-                result.append(current_text)
-                current_line = []
-            else:
-                current_line.append(" ")
-        else:
-            current_line.append(part)
-
-    if current_line:
-        remaining = "".join(current_line).strip()
-        if remaining and any(char.isalnum() for char in remaining):
-            if len(result) > 0 and len(result[-1] + " " + remaining) <= min_length:
-                result[-1] = result[-1] + " " + remaining
-            else:
-                result.append(remaining)
-
-    return "\n".join(result)
 
 
 def read_whisper(overlay, language_to_translate=None):
@@ -90,9 +63,7 @@ def read_whisper(overlay, language_to_translate=None):
         line = line.strip()
         if line.startswith("<text>:"):
             curr_text = line[len("<text>:") :]
-            overlay.set_text_with_previous(
-                prev_line, add_newlines_after_punctuation(curr_text)
-            )
+            overlay.set_text_with_previous(prev_line, text_preprocessing(curr_text))
             next_ctr = 0
         elif line.startswith("<Ready") or line.startswith("<error>:"):
             overlay.set_text(line)

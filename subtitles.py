@@ -162,9 +162,9 @@ class SubtitleOverlay(NSObject):
         curr_attrs = {NSFontAttributeName: curr_font}
         ns_curr = NSString.stringWithString_(curr_text)
         bounding_rect = ns_curr.boundingRectWithSize_options_attributes_(
-            (label_width, 10000), # Max width = label_width, max height = large number
+            (label_width, 10000),  # Max width = label_width, max height = large number
             NSStringDrawingUsesLineFragmentOrigin,
-            curr_attrs
+            curr_attrs,
         )
         curr_height = bounding_rect.size.height
 
@@ -172,7 +172,9 @@ class SubtitleOverlay(NSObject):
         prev_height = 0
         spacing = 0
         if prev_text:
-            prev_height = self.prev_label.font().pointSize() * 1.2  # Approximate line height
+            prev_height = (
+                self.prev_label.font().pointSize() * 1.2
+            )  # Approximate line height
             spacing = 10
 
         required_text_height = prev_height + spacing + curr_height
